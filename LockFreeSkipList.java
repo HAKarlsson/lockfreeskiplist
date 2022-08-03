@@ -161,7 +161,7 @@ retry:
                                 preds[level] = pred;
                                 succs[level] = curr;
                         }
-                        return (curr.key == key);
+                        return (curr.key == key) && x.equals(curr.value);
                 }
         }
 
@@ -188,7 +188,7 @@ retry:
                                 }
                         }
                 }
-                return (curr.key == v);
+                return (curr.key == v) && x.equals(curr.value);
         }
 
         public int size() {
