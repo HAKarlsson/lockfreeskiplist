@@ -1,19 +1,25 @@
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicMarkableReference;
 import java.util.Random;
 
+/* Remove comment for size function */
+//import java.util.concurrent.atomic.AtomicInteger;
+
 public final class LockFreeSkipList<T> {
-        public static final int MAX_LEVEL = 16;
+        /* Number of levels */
+        private static final int MAX_LEVEL = 16;
+        /* RNG for randomLevel() function */
         private static final Random rng = new Random();
+        
         private final Node<T> head = new Node<T>(Integer.MIN_VALUE);
         private final Node<T> tail = new Node<T>(Integer.MAX_VALUE);
-        private AtomicInteger counter;
+        /* Remove comment for size function */
+        //private AtomicInteger size;
 
         public LockFreeSkipList() {
                 for (int i = 0; i < head.next.length; i++) {
                         head.next[i] = new AtomicMarkableReference<LockFreeSkipList.Node<T>>(tail, false);
                 }
-                counter = new AtomicInteger(0);
+                //size = new AtomicInteger(0);
         }
 
         private static final class Node<T> {
@@ -45,6 +51,9 @@ public final class LockFreeSkipList<T> {
                 }
         }
 
+        /* Returns a level between 0 to MAX_LEVEL,
+         * P[randomLevel() = x] = 1/2^(x+1), for x < MAX_LEVEL.
+         */
         private static int randomLevel() {
                 int r = rng.nextInt();
                 int level = 0;
@@ -86,7 +95,7 @@ public final class LockFreeSkipList<T> {
                                                 find(x, preds, succs);
                                         }
                                 }
-                                counter.getAndIncrement();
+                                //size.getAndIncrement();
                                 return true;
                         }
                 }
@@ -119,7 +128,7 @@ public final class LockFreeSkipList<T> {
                                         succ = succs[bottomLevel].next[bottomLevel].get(marked);
                                         if (iMarkedIt) {
                                                 find(x, preds, succs);
-                                                counter.getAndDecrement();
+                                                /*size.getAndDecrement();*/
                                                 return true;
                                         } else if (marked[0]) {
                                                 return false;
@@ -161,7 +170,9 @@ retry:
                                 preds[level] = pred;
                                 succs[level] = curr;
                         }
-                        return (curr.key == key) && x.equals(curr.value);
+                        return (curr.key == key);
+                        // Different objects may have the same hash, this should be used in production.
+                        // return (curr.key == key) && x.equals(curr.value);
                 }
         }
 
@@ -177,7 +188,7 @@ retry:
                         while (true) {
                                 succ = curr.next[level].get(marked);
                                 while (marked[0]) {
-                                        curr = curr.next[level].getReference();
+                                        curr = succ; /* Same as, curr.next[level].getReference() */
                                         succ = curr.next[level].get(marked);
                                 }
                                 if (curr.key < v) {
@@ -188,11 +199,14 @@ retry:
                                 }
                         }
                 }
-                return (curr.key == v) && x.equals(curr.value);
+                return (curr.key == v);
+                // Different objects may have the same hash, this should be used in production.
+                // return (curr.key == key) && x.equals(curr.value);
         }
 
-        public int size() {
-                return counter.get();
-        }
+        //public int size() {
+        //        return size.get();
+        //}
+        
 }
 
